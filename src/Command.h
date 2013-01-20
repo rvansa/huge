@@ -24,12 +24,12 @@ namespace huge {
 
 	class NoopCommand: public Command {
 	public:
-		virtual bool execute(Huge &huge) { return true; }
+		virtual bool execute(Huge &huge) { (void) huge; return true; }
 	};
 
 	class QuitCommand: public Command {
 	public:
-		virtual bool execute(Huge &huge) { return false; }
+		virtual bool execute(Huge &huge) { (void) huge; return false; }
 	};
 
 	class LineIndent: public Command {

@@ -26,7 +26,7 @@ namespace huge {
 	public:
 		virtual ~CharacterBuffer() {}
 		virtual void put(int row, int col, char c, off_t origin) = 0;
-		virtual void put_newline(off_t origin) { }
+		virtual void put_newline(off_t origin) { (void) origin; }
 	};
 
 	class BasicCharacterBuffer: public CharacterBuffer {

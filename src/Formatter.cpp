@@ -41,6 +41,7 @@ Character BasicCharacterBuffer::get(int row, int col) {
 }
 
 void InfoCharacterBuffer::put(int row, int col, char c, off_t origin) {
+	(void) row; (void) col; (void) c;
 	_last = origin;
 }
 
@@ -133,13 +134,46 @@ bool Formatter::read(const FileView &file_view, CharacterBuffer &buffer, int row
 	return true;
 }
 
+/*
+static int find_prev_word_wrap(const char * const str, const int pos, const int len) {
+	// TODO assert(pos > 0 && pos < len);
+	const char *s = str + pos;
+	while (s != str && (isalnum(*s) || *s == '_')) --s;
+	return s - str;
+}
+
+bool Formatter::read_before(const FileView &file_view, CharacterBuffer &buffer, int row, int cols) {
+	if (cols > MAX_WIDTH) cols = MAX_WIDTH;
+	char row_buffer[MAX_WIDTH + 1];
+	ReadBackOperation op(file_view);
+	int read = op.read(row_buffer, cols + 1);
+	int line_start = -1; // relative to file_view.pos() - read
+	for (int i = read - 1; i >= 0; --i) {
+		if (row_buffer[i] == '\n')  {
+			line_start = i + 1;
+			break;
+		}
+	}
+	if (line_start < 0) { // there is no newline
+		if (read < cols + 1) { // we have met the start of file
+			line_start = 0;
+		} else if (!word_wrap) {
+			line_start = get_line_indent() + 1; // we have read one more character
+		} else {
+
+		}
+	}
+}*/
+
 bool Formatter::pos_change_lines(int lines, const DisplaySize &display, FileView &file_view) const {
 	if (lines > 0) {
 		InfoCharacterBuffer buffer;
-		read(file_view, buffer, lines, display.cols);
+		if (!read(file_view, buffer, lines, display.cols)) return false;
 		file_view.pos(buffer.last_origin() + 1);
 	} else if (lines < 0){
-
+		//TODO
+		off_t pos = file_view.pos() > - lines*display.cols ? file_view.pos() + lines*display.cols : 0;
+		file_view.pos(pos);
 	}
 	return true;
 }

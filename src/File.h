@@ -48,14 +48,14 @@ namespace huge {
 	public:
 		ReadOperation(const FileView &fv);
 		~ReadOperation() {
-			_file_view.file().unlock();
+			_file.unlock();
 		}
 		inline int read(char *buffer, int max)
 		{
-			return _file_view.file().read_data(buffer, max);
+			return _file.read_data(buffer, max);
 		}
 	private:
-		const FileView &_file_view;
+		File &_file;
 	};
 
 	class ReadBackOperation {

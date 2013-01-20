@@ -42,9 +42,9 @@ int File::read_data(char *buffer, int max) {
 	return total_read;
 }
 
-ReadOperation::ReadOperation(const FileView &fv): _file_view(fv) {
-	_file_view.file().lock();
-	lseek(_file_view.file()._descriptor, _file_view.pos(), SEEK_SET);
+ReadOperation::ReadOperation(const FileView &fv): _file(fv.file()) {
+	_file.lock();
+	lseek(_file._descriptor, fv.pos(), SEEK_SET);
 }
 
 ReadBackOperation::ReadBackOperation(const FileView &fv): _file_view(fv), _pos(_file_view.pos()) {

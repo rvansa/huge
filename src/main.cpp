@@ -5,11 +5,14 @@
 #include "Command.h"
 #include "Display.h"
 #include "File.h"
+#include "IndexJob.h"
 
 using namespace huge;
 
 int main(int argc, char *argv[]) {
-	if (argc < 2) {
+	IndexJob job;
+	job.run();
+	/*if (argc < 2) {
 		fprintf(stderr, "Usage: huge FILE\n");
 		return 1;
 	}
@@ -29,5 +32,5 @@ int main(int argc, char *argv[]) {
 		delete c;
 		display.refresh(formatter, huge.file_view());
 	}
-	return 0;
+	return 0;*/
 }
