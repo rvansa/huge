@@ -9,10 +9,17 @@
 #define FILE_H_
 
 #include <sys/types.h>
+#include <stdlib.h>
+#include "Exception.h"
 
 namespace huge {
 
 	class ReadOperation;
+
+	class FileReadException: public Exception {
+	public:
+		FileReadException(const std::string &filename): Exception(std::string("Problems reading file ") + filename) {}
+	};
 
 	class File {
 	friend class ReadOperation;
@@ -25,7 +32,7 @@ namespace huge {
 		void lock(void);
 		void unlock(void);
 	protected:
-		int read_data(char *buffer, int max);
+		size_t read_data(char *buffer, size_t max) throw(FileReadException);
 	private:
 		const char *_filename;
 		bool _locked = false; // TODO mutex
@@ -34,28 +41,39 @@ namespace huge {
 
 	class FileView {
 	public:
-		FileView(File &file): _file(file), _pos(0) {}
-		inline File &file() const { return _file; }
+		FileView(): _file(NULL), _pos(0) {}
+		FileView(File &file): _file(&file), _pos(0) {}
+		inline File &file() const { return *_file; }
 		inline off_t pos() const { return _pos; }
 		inline FileView &pos(off_t pos) { _pos = pos; return *this; }
 	private:
-		File &_file;
+		File *_file;
 		off_t _pos;
 	};
 
 	/* Guardian for the file lock */
 	class ReadOperation {
 	public:
-		ReadOperation(const FileView &fv);
+		ReadOperation(const FileView &fv): _file(fv.file()), _start_pos(fv.pos()), _started(false), _finished(false) {}
 		~ReadOperation() {
-			_file.unlock();
+			finish();
 		}
-		inline int read(char *buffer, int max)
+		void start() throw(FileReadException);
+		inline void finish() {
+			if (!_started || _finished) return;
+			_file.unlock();
+			_finished = true;
+		}
+		inline size_t read(char *buffer, size_t max) throw(FileReadException)
 		{
+			if (!_started) start();
 			return _file.read_data(buffer, max);
 		}
 	private:
 		File &_file;
+		off_t _start_pos;
+		bool _started;
+		bool _finished;
 	};
 
 	class ReadBackOperation {
@@ -64,7 +82,7 @@ namespace huge {
 		~ReadBackOperation() {
 			_file_view.file().unlock();
 		}
-		int read(char *buffer, int max);
+		size_t read(char *buffer, size_t max) throw(FileReadException);
 	private:
 		const FileView &_file_view;
 		off_t _pos;

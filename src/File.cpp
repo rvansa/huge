@@ -30,11 +30,12 @@ void File::unlock() {
 	_locked = false;
 }
 
-int File::read_data(char *buffer, int max) {
-	int rd, total_read = 0;
+size_t File::read_data(char *buffer, size_t max) throw(FileReadException) {
+	ssize_t rd;
+	size_t total_read = 0;
 	do {
 		rd = ::read(_descriptor, buffer, max);
-		if (rd < 0) return rd;
+		if (rd < 0) throw FileReadException(_filename);
 		buffer += rd;
 		max -= rd;
 		total_read += rd;
@@ -42,18 +43,21 @@ int File::read_data(char *buffer, int max) {
 	return total_read;
 }
 
-ReadOperation::ReadOperation(const FileView &fv): _file(fv.file()) {
+void ReadOperation::start() throw (FileReadException) {
 	_file.lock();
-	lseek(_file._descriptor, fv.pos(), SEEK_SET);
+	_started = true;
+	if (::lseek(_file._descriptor, _start_pos, SEEK_SET) < 0) throw FileReadException(_file.filename());
 }
 
 ReadBackOperation::ReadBackOperation(const FileView &fv): _file_view(fv), _pos(_file_view.pos()) {
 	_file_view.file().lock();
 }
 
-int ReadBackOperation::read(char *buffer, int max) {
-	if (max > _pos) max = _pos;
+size_t ReadBackOperation::read(char *buffer, size_t max) throw(FileReadException) {
+	if (max > (size_t) _pos) max = _pos;
 	_pos = _pos - max;
-	lseek(_file_view.file()._descriptor, _pos, SEEK_SET);
+	if (lseek(_file_view.file()._descriptor, _pos, SEEK_SET)) {
+		throw FileReadException(_file_view.file().filename());
+	}
 	return _file_view.file().read_data(buffer, max);
 }

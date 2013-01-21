@@ -31,7 +31,6 @@ MultiRegexp::MultiRegexp(const char *expressions[], size_t n) throw(RegexpCompil
 	for (size_t expid = 0; expid < n; ++expid) {
 		buffer.push_back('(');
 		*(match++) = expid;
-		size_t length = 0;
 		const char *str = expressions[expid];
 		for (; *str != 0; ++str) {
 			if (*str == '(') {
@@ -64,12 +63,24 @@ MultiRegexp::~MultiRegexp() {
 	tre_regfree(&_compiled);
 }
 
-MatchResult MultiRegexp::match() {
+MatchResult MultiRegexp::match(off_t begin_offset, bool report_submatch) {
 	if (_parenthesses == 0 || _match_buffer[0].rm_so < 0)
 		return MatchResult::NOT_FOUND;
 	for (size_t i = 0; i < _parenthesses; ++i) {
 		if (_match_buffer[i].rm_so >= 0) {
-			return _match_table[i];
+			if (report_submatch) {
+				size_t j = i + 1;
+				for (; j < _parenthesses; ++j) {
+					if (_match_buffer[i].rm_so < 0) break;
+				}
+				MatchResult result(_match_table[i], begin_offset + _match_buffer[i].rm_so, begin_offset + _match_buffer[i].rm_eo, j - i);
+				for (j = i + 1; j < _parenthesses; ++j) {
+					result.add_submatch(begin_offset + _match_buffer[j].rm_so, begin_offset + _match_buffer[j].rm_eo);
+				}
+				return result;
+			} else {
+				return MatchResult(_match_table[i], begin_offset + _match_buffer[i].rm_so, begin_offset + _match_buffer[i].rm_eo);
+			}
 		}
 	}
 	return MatchResult::NOT_FOUND;

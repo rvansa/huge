@@ -15,9 +15,9 @@ namespace huge {
 
 	class DisplaySize {
 	public:
-		int rows;
-		int cols;
-		DisplaySize(int rows, int cols): rows(rows), cols(cols) {}
+		unsigned int rows;
+		unsigned int cols;
+		DisplaySize(unsigned int rows, unsigned int cols): rows(rows), cols(cols) {}
 	};
 
 	class Display {

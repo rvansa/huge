@@ -46,7 +46,9 @@ void Display::refresh(const Formatter &formatter, const FileView &file_view) {
 
 	_buffer.assure_capacity(rows - 1, cols);
 
-	if (formatter.read(file_view, _buffer, rows - 1, cols)) {
+	try {
+		formatter.read(file_view, _buffer, rows - 1, cols);
+	} catch (FileReadException &e) {
 		print_error("Error reading file %s", file_view.file());
 	}
 	::mvprintw(rows - 1, 0, "-------------------------------------------");

@@ -66,7 +66,7 @@ static int find_next_word_wrap(const char * const str, const int pos, const int 
 	return s - str;
 }
 
-bool Formatter::read(const FileView &file_view, CharacterBuffer &buffer, int rows, int cols) const {
+void Formatter::read(const FileView &file_view, CharacterBuffer &buffer, unsigned int rows, unsigned int cols) const throw(FileReadException) {
 	if (cols > MAX_WIDTH) cols = MAX_WIDTH;
 	char row_buffer[2*MAX_WIDTH];
 
@@ -79,23 +79,18 @@ bool Formatter::read(const FileView &file_view, CharacterBuffer &buffer, int row
 	}
 	ReadOperation op(my_view);
 	if (origin > 0) {
-		if (op.read(&prev_char, 1) < 0) return false;
+		op.read(&prev_char, 1);
 	}
-	int col = (prev_char != '\n' ? get_line_indent() : 0);
+	unsigned int col = (prev_char != '\n' ? get_line_indent() : 0);
 
-	int read = op.read(row_buffer, cols);
-	if (read < 0) {
-		return false;
-	}
-	for (int row = 0; row < rows;) {
-		int next_read = op.read(row_buffer + cols, cols);
+	size_t read = op.read(row_buffer, cols);
+	for (unsigned int row = 0; row < rows;) {
+		size_t next_read = op.read(row_buffer + cols, cols);
 		if (read == 0) {
 			break;
-		} if (read < 0) {
-			return false;
 		}
-		int next_wrap = word_wrap ? find_next_word_wrap(row_buffer, 0, read + next_read) : -1;
-		int i;
+		size_t next_wrap = word_wrap ? find_next_word_wrap(row_buffer, 0, read + next_read) : -1;
+		size_t i;
 		for (i = 0; i < read; ++i) {
 			if (row_buffer[i] == '\r') {
 				// ignore
@@ -131,7 +126,6 @@ bool Formatter::read(const FileView &file_view, CharacterBuffer &buffer, int row
 		read = next_read;
 		origin += i + 1;
 	}
-	return true;
 }
 
 /*
@@ -168,7 +162,11 @@ bool Formatter::read_before(const FileView &file_view, CharacterBuffer &buffer, 
 bool Formatter::pos_change_lines(int lines, const DisplaySize &display, FileView &file_view) const {
 	if (lines > 0) {
 		InfoCharacterBuffer buffer;
-		if (!read(file_view, buffer, lines, display.cols)) return false;
+		try {
+			read(file_view, buffer, lines, display.cols);
+		} catch (FileReadException &e) {
+			return false;
+		}
 		file_view.pos(buffer.last_origin() + 1);
 	} else if (lines < 0){
 		//TODO

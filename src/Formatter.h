@@ -58,18 +58,18 @@ namespace huge {
 		Formatter();
 		virtual ~Formatter();
 
-		bool read(const FileView &file_view, CharacterBuffer &buffer, int rows, int cols) const;
+		void read(const FileView &file_view, CharacterBuffer &buffer, unsigned int rows, unsigned int cols) const throw(FileReadException);
 		bool pos_change_lines(int lines, const DisplaySize &display_size, FileView &file_view) const;
 
 		inline void toggle_line_indent() { line_indent = !line_indent; }
 		inline void toggle_word_wrap() { word_wrap = !word_wrap; }
 
 	private:
-		int line_indent_chars = 4;
+		unsigned int line_indent_chars = 4;
 		bool line_indent = false;
 		bool word_wrap = false;
 
-		inline int get_line_indent() const { return line_indent ? line_indent_chars : 0; }
+		inline unsigned int get_line_indent() const { return line_indent ? line_indent_chars : 0; }
 	};
 
 }

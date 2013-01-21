@@ -18,14 +18,19 @@ class SearchJob: public Job {
 public:
 	SearchJob();
 	virtual ~SearchJob();
-	MatchResult find_next(const FileView &file_view, MultiRegexp &regexp);
+	MatchResult find_next(const FileView &file_view, MultiRegexp &regexp, bool report_submatch = false);
 private:
-	static int get_next_char(char *c, unsigned int *pos_add, void *context);
+	static int get_next_char(unsigned char *c, unsigned int *pos_add, void *context);
 	static void rewind(size_t pos, void *context);
-	static void compare(size_t pos1, size_t pos2, size_t len, void *context);
+	static int compare(size_t pos1, size_t pos2, size_t len, void *context);
 
-	FileView *_initial_file_view = NULL;
-	FileView *_current_file_view = NULL;
+	static const int READ_BUFFER_SIZE = 1024;
+
+	FileView _initial_file_view;
+	FileView _current_file_view;
+	char _read_buffer[READ_BUFFER_SIZE];
+	size_t _read_buffer_pos;
+	size_t _read_buffer_end;
 };
 
 } /* namespace huge */
