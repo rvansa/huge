@@ -5,11 +5,13 @@
  *      Author: radim
  */
 
-#include "tre.h"
 #include "IndexJob.h"
+#include "MultiRegexp.h"
 #include <stdio.h>
 
-IndexJob::IndexJob() {
+using namespace huge;
+
+IndexJob::IndexJob(File &file): _file(file) {
 	// TODO Auto-generated constructor stub
 
 }
@@ -21,21 +23,23 @@ IndexJob::~IndexJob() {
 
 
 void IndexJob::run() {
-	regex_t r;
-	if (tre_regcomp(&r, "(foo)|(bar)", REG_EXTENDED | REG_NEWLINE)) {
-		printf("Compile failed\n");
-	} else {
-		printf("Compile succeeded\n");
+	FileView file_view(_file);
+	const char *expressions[] = { "\n", "true", "new" };
+	MultiRegexp regexp(expressions, 3);
+	size_t line = 1;
+	for(;;) {
+		MatchResult result = find_next(file_view, regexp, false);
+		if (result.found()) {
+			if (result.which() == 0) {
+				line++;
+			} else {
+				printf("Found %s on %ld (line %ld)\n", expressions[result.which()], result.start_pos(), line);
+			}
+			file_view.pos(result.start_pos() + 1);
+		} else {
+			break;
+		}
 	}
-	regmatch_t match[10];
-	if (tre_regexec(&r, "foxbarfoo", 10, match, 0)) {
-		printf("Search failed\n");
-	} else {
-		for (int i = 0; i < 10; ++i)
-			printf("Found on %ld-%ld\n", match[i].rm_so, match[i].rm_eo);
-
-
-	}
-	printf("ENough\n");
+	printf("Total %ld lines\n", line);
 }
 

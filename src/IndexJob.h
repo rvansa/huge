@@ -8,13 +8,19 @@
 #ifndef INDEXJOB_H_
 #define INDEXJOB_H_
 
-class IndexJob {
+#include "SearchJob.h"
+
+namespace huge {
+
+class IndexJob: public SearchJob {
 public:
-	IndexJob();
+	IndexJob(File &file);
 	virtual ~IndexJob();
 	virtual void run();
+private:
+	File &_file;
 };
 
-bool p(const char *str, int n, void *dest);
+}
 
 #endif /* INDEXJOB_H_ */

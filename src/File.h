@@ -10,6 +10,7 @@
 
 #include <sys/types.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include "Exception.h"
 
 namespace huge {
@@ -21,11 +22,16 @@ namespace huge {
 		FileReadException(const std::string &filename): Exception(std::string("Problems reading file ") + filename) {}
 	};
 
+	class FileOpenException: public Exception {
+	public:
+		FileOpenException(const std::string &filename): Exception(std::string("Problems opening file ") + filename) {}
+	};
+
 	class File {
 	friend class ReadOperation;
 	friend class ReadBackOperation;
 	public:
-		File(const char *filename);
+		File(const char *filename) throw(FileOpenException);
 		virtual ~File();
 		inline bool is_opened(void) const { return _descriptor >= 0; }
 		inline const char *filename(void) const { return _filename; }
@@ -35,13 +41,13 @@ namespace huge {
 		size_t read_data(char *buffer, size_t max) throw(FileReadException);
 	private:
 		const char *_filename;
-		bool _locked = false; // TODO mutex
+		pthread_mutex_t _lock;
 		int _descriptor;
 	};
 
 	class FileView {
 	public:
-		FileView(): _file(NULL), _pos(0) {}
+		FileView(): _file(0), _pos(0) {}
 		FileView(File &file): _file(&file), _pos(0) {}
 		inline File &file() const { return *_file; }
 		inline off_t pos() const { return _pos; }

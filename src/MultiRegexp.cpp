@@ -22,12 +22,14 @@ MultiRegexp::MultiRegexp(const char *expressions[], size_t n) throw(RegexpCompil
 		}
 		total_length += (str - expressions[expid]);
 	}
-	_parenthesses = parentheses + n;
+	_parenthesses = parentheses + n + 1;
 	_match_table = new size_t[_parenthesses];
 	_match_buffer = new regmatch_t[_parenthesses];
 
 	size_t *match = _match_table;
-	std::string buffer(total_length + 3*n, 0);
+	*(match++) = -1; // first match is for the whole result position
+	std::string buffer;
+	buffer.reserve(total_length + 3*n);
 	for (size_t expid = 0; expid < n; ++expid) {
 		buffer.push_back('(');
 		*(match++) = expid;
@@ -66,7 +68,7 @@ MultiRegexp::~MultiRegexp() {
 MatchResult MultiRegexp::match(off_t begin_offset, bool report_submatch) {
 	if (_parenthesses == 0 || _match_buffer[0].rm_so < 0)
 		return MatchResult::NOT_FOUND;
-	for (size_t i = 0; i < _parenthesses; ++i) {
+	for (size_t i = 1; i < _parenthesses; ++i) {
 		if (_match_buffer[i].rm_so >= 0) {
 			if (report_submatch) {
 				size_t j = i + 1;

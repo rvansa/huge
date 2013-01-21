@@ -22,6 +22,11 @@ SearchJob::~SearchJob() {
 int SearchJob::get_next_char(unsigned char *c, unsigned int *pos_add, void *context) {
 	SearchJob *self = static_cast<SearchJob *>(context);
 	if (self->_read_buffer_pos >= self->_read_buffer_end) {
+		/* Here is the pause point */
+		if (self->should_wait()) {
+			self->wait();
+		}
+
 		ReadOperation op(self->_current_file_view);
 		try {
 			size_t read = op.read(self->_read_buffer, READ_BUFFER_SIZE);

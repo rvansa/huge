@@ -8,12 +8,17 @@
 #include "File.h"
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <sys/stat.h>
 
 using namespace huge;
 
-File::File(const char *filename): _filename(filename) {
+File::File(const char *filename) throw(FileOpenException): _filename(filename) {
 	_descriptor = open(filename, O_RDONLY);
+	if (!is_opened()) {
+		throw FileOpenException(filename);
+	}
+	pthread_mutex_init(&_lock, 0);
 }
 
 File::~File() {
@@ -23,11 +28,11 @@ File::~File() {
 }
 
 void File::lock() {
-	_locked = true;
+	pthread_mutex_lock(&_lock);
 }
 
 void File::unlock() {
-	_locked = false;
+	pthread_mutex_unlock(&_lock);
 }
 
 size_t File::read_data(char *buffer, size_t max) throw(FileReadException) {
