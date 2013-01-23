@@ -15,6 +15,7 @@ FILES=\
 	$(SRC)/Formatter.cpp \
 	$(SRC)/Huge.cpp \
 	$(SRC)/MultiRegexp.cpp \
+	$(SRC)/Index.cpp \
 	$(SRC)/Job.cpp \
 	$(SRC)/SearchJob.cpp \
 	$(SRC)/IndexJob.cpp

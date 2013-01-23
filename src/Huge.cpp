@@ -10,8 +10,8 @@
 using namespace huge;
 
 Huge::Huge(): _display(0), _file(0), _formatter(0), _file_view(0) {
-	// TODO Auto-generated constructor stub
-
+	_indexed.push_back(std::string("new"));
+	_indexed.push_back(std::string("true"));
 }
 
 Huge::~Huge() {

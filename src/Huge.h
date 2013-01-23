@@ -8,6 +8,7 @@
 #ifndef HUGE_H_
 #define HUGE_H_
 
+#include <vector>
 #include "Display.h"
 #include "File.h"
 #include "Formatter.h"
@@ -30,11 +31,13 @@ public:
 	inline FileView &file_view() { return *_file_view; }
 	inline Huge &formatter(Formatter *f) { _formatter = f; return *this; }
 	inline Formatter &formatter() { return *_formatter; }
+	inline const std::vector<std::string> &indexed() { return _indexed; }
 private:
 	Display *_display;
 	File *_file;
 	Formatter *_formatter;
 	FileView *_file_view;
+	std::vector<std::string> _indexed;
 };
 
 }
